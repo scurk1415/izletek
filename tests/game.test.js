@@ -11,12 +11,12 @@ import {
 } from '../game.js';
 
 test('correct word and letter checks use the configured clue sequence', () => {
-  assert.equal(isCorrectWordGuess('hladilnik', 0), true);
-  assert.equal(isCorrectWordGuess('napaka', 0), false);
+  assert.equal(isCorrectWordGuess('mleko', 0), true);
+  assert.equal(isCorrectWordGuess('hladilnik', 0), false);
   assert.equal(isCorrectLetterGuess('n', 0), true);
   assert.equal(isCorrectLetterGuess('a', 0), false);
   assert.equal(GAME_STEPS.length, 6);
-  assert.equal(GAME_STEPS[1].word, 'pod blazino');
+  assert.equal(GAME_STEPS[1].word, 'sanj');
 });
 
 test('final answer accepts the hidden letters in any order and ignores non-letter characters', () => {
