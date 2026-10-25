@@ -70,17 +70,17 @@ function render() {
   app.innerHTML = `
     <header class="hero">
       <div class="badge">Korak ${stepNumber} / ${GAME_STEPS.length}</div>
-      <h1>Lov na zaklad</h1>
+      <h1>Skrivnostna pot</h1>
       ${progressDots()}
     </header>
 
     <section class="card trip-card">
-      <div class="card-label">🧭 Kam greva?</div>
+      <div class="card-label">✦ Sled do cilja</div>
       <p class="trip-text">${current.trip}</p>
     </section>
 
     <section class="card riddle-card">
-      <div class="card-label">🔎 Uganka</div>
+      <div class="card-label">☾ Uganka</div>
       <p class="riddle-text">${current.riddle}</p>
       ${state.phase === 'word'
         ? `
@@ -95,7 +95,7 @@ function render() {
         `
         : `
           <div class="reveal">
-            <p>Pravilno! Tvoja skrita črka je</p>
+            <p>Pravilno! Iz teme se prikaže črka …</p>
             <span class="reveal-letter">${current.letter}</span>
           </div>
           <button type="button" id="next-step" class="wide">
@@ -105,7 +105,7 @@ function render() {
     </section>
 
     <section class="card">
-      <div class="card-label">✉️ Zbrane črke</div>
+      <div class="card-label">✧ Zbrane črke</div>
       ${letterSlots()}
     </section>
   `;
@@ -127,9 +127,14 @@ function render() {
     state.step += 1;
     state.phase = state.step >= GAME_STEPS.length ? 'final' : 'word';
     render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  document.querySelector('#word-input')?.focus();
+  if (state.phase === 'reveal') {
+    document.querySelector('.reveal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    document.querySelector('#word-input')?.focus({ preventScroll: true });
+  }
 }
 
 function currentGuess() {
@@ -170,7 +175,7 @@ function renderFinal() {
     <header class="hero">
       <div class="badge">Zadnji izziv</div>
       <h1>Kam greva?</h1>
-      <p class="subtitle">Zbrane črke so pomešane. Tapni jih v pravem vrstnem redu in sestavi ime kraja. Imaš ${MAX_FINAL_ATTEMPTS} poskusov.</p>
+      <p class="subtitle">Črke so se pomešale v megli. Tapni jih v pravem vrstnem redu in razkrij ime kraja. Imaš ${MAX_FINAL_ATTEMPTS} poskusov.</p>
     </header>
 
     <section class="card wordle-card">
@@ -273,38 +278,61 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+const NEBESA_MEDIA = 'https://www.nebesa.si/media';
+const PHOTOS = [
+  { src: '1214/nebesa_jost_gantar-5.jpg', alt: 'Ležalnika na travniku z razgledom na morje oblakov' },
+  { src: '1212/nebesa_jost_gantar-49.jpg', alt: 'Hiške ob mraku pod zasneženimi vršaci' },
+  { src: '1242/nebesa_jost_gantar-24.jpg', alt: 'Počitek na travniku nad dolino Soče' },
+  { src: '1281/nebesa_jost_gantar-13.jpg', alt: 'Večerja za dva z razgledom na gore' },
+  { src: '1216/nebesa_jost_gantar-22.jpg', alt: 'Sprehod po gorskem travniku ob sončnem zahodu' }
+];
+
+function photoUrl(src) {
+  return `${NEBESA_MEDIA}/${src}`;
+}
+
+function launchConfetti() {
+  const colors = ['#c0613a', '#3f8f5a', '#d7a73a', '#f1c08f', '#7fb3d5', '#e88aa8'];
+  const layer = document.createElement('div');
+  layer.className = 'confetti';
+  for (let i = 0; i < 140; i += 1) {
+    const piece = document.createElement('span');
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = `${Math.random() * 1.2}s`;
+    piece.style.animationDuration = `${2.8 + Math.random() * 2.4}s`;
+    piece.style.setProperty('--drift', `${(Math.random() - 0.5) * 220}px`);
+    piece.style.setProperty('--spin', `${360 + Math.random() * 720}deg`);
+    layer.appendChild(piece);
+  }
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 7000);
+}
+
 function renderSuccess() {
-  const images = [
-    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80',
-    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
-    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80'
-  ];
+  const [first, ...rest] = PHOTOS;
+  document.body.classList.add('dawn');
 
   app.innerHTML = `
-    <header class="hero success">
-      <div class="badge">Cilj dosežen 🎉</div>
-      <h1 class="final-word">${FINAL_WORD.split('').map((char, i) => `<span style="--i:${i}">${char}</span>`).join('')}</h1>
-      <p class="subtitle">Bravo! Greva v <strong>Nebesa Chalets</strong> nad Kobaridom – visoko nad oblaki, s pogledom na dolino Soče in Krn.</p>
-    </header>
+    <section class="celebration">
+      <img class="celebration-photo" src="${photoUrl('1213/nebesa_jost_gantar-50.jpg')}" alt="Hiške nad morjem oblakov ob sončnem vzhodu" />
+      <div class="celebration-overlay">
+        <div class="badge">Uganila si! 🎉</div>
+        <h1 class="final-word">${FINAL_WORD.split('').map((char, i) => `<span style="--i:${i}">${char}</span>`).join('')}</h1>
+        <p class="celebration-shout">Juhuuu, greva v nebesa! 🥂</p>
+      </div>
+    </section>
 
     <section class="card">
+      <img class="feature-photo" src="${photoUrl(first.src)}" alt="${first.alt}" />
       <div class="gallery">
-        ${images.map((src) => `<img src="${src}" alt="Gorska pokrajina" loading="lazy" />`).join('')}
+        ${rest.map((photo) => `<img src="${photoUrl(photo.src)}" alt="${photo.alt}" loading="lazy" />`).join('')}
       </div>
-      <button class="secondary wide" type="button" id="play-again">Začni znova</button>
+      <p class="credit">Foto: Jošt Gantar</p>
     </section>
   `;
 
-  document.querySelector('#play-again')?.addEventListener('click', () => {
-    state.step = 0;
-    state.phase = 'word';
-    state.foundLetters = [];
-    state.error = '';
-    state.guesses = [];
-    state.picked = [];
-    state.justSubmitted = false;
-    render();
-  });
+  launchConfetti();
 }
 
 render();

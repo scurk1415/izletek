@@ -3,10 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lov na zaklad</title>
+    <meta name="theme-color" content="#070b1d" />
+    <title>Skrivnostna pot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&display=swap" />
     <link rel="stylesheet" href="../styles.css" />
   </head>
   <body>
+    <div class="sky" aria-hidden="true">
+      <div class="stars"></div>
+      <div class="stars small"></div>
+      <div class="moon"></div>
+      <svg class="mountains" viewBox="0 0 1440 320" preserveAspectRatio="none">
+        <path class="far" d="M0 220 L120 150 L210 190 L330 90 L420 160 L520 110 L640 40 L720 120 L820 80 L930 150 L1040 70 L1150 140 L1260 100 L1360 160 L1440 130 L1440 320 L0 320 Z" />
+        <path class="near" d="M0 270 L90 230 L200 260 L300 200 L400 250 L520 210 L610 255 L740 190 L860 250 L960 215 L1080 265 L1190 220 L1300 255 L1440 225 L1440 320 L0 320 Z" />
+      </svg>
+      <div class="fog"></div>
+    </div>
     <main class="app-shell">
       <div id="app" aria-live="polite"></div>
     </main>

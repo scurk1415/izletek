@@ -67,7 +67,7 @@ export const GAME_STEPS = [
   },
   {
     id: 'coffee',
-    word: 'kava',
+    word: 'jutro',
     letter: 'E',
     trip: 'Ne bova spala v mestu, ampak visoko nad njim, nad oblaki, s pogledom na vso dolino in gore. Kraj je tako lep, da so ga poimenovali po raju.',
     riddle: [
