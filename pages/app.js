@@ -1,24 +1,51 @@
 import {
+  FINAL_WORD,
   GAME_STEPS,
-  checkFinalWord,
-  isCorrectLetterGuess,
+  MAX_FINAL_ATTEMPTS,
   isCorrectWordGuess,
-  normalizeLetterInput
+  normalizeWord,
+  scoreGuess
 } from '../game.js';
 
 const app = document.querySelector('#app');
+const WORD_LENGTH = FINAL_WORD.length;
+const KEYBOARD_ROWS = ['QWERTZUIOP', 'ASDFGHJKL', 'YXCVBNM'];
+const STATE_RANK = { absent: 1, present: 2, correct: 3 };
 
 const state = {
   step: 0,
   phase: 'word',
   foundLetters: [],
   error: '',
-  info: '',
-  finalSolved: false
+  guesses: [],
+  current: '',
+  justSubmitted: false
 };
 
-function titleCase(value) {
-  return String(value || '').replace(/\b\w/g, (char) => char.toUpperCase());
+let lastScreen = '';
+
+function progressDots() {
+  return `
+    <div class="progress" aria-label="Napredek">
+      ${GAME_STEPS.map((_, i) => {
+        const cls = i < state.step ? 'done' : i === state.step ? 'active' : '';
+        return `<span class="dot ${cls}"></span>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function letterSlots() {
+  return `
+    <div class="letters">
+      ${GAME_STEPS.map((_, i) => {
+        const letter = state.foundLetters[i];
+        return letter
+          ? `<span class="letter-pill">${letter}</span>`
+          : '<span class="letter-pill empty">?</span>';
+      }).join('')}
+    </div>
+  `;
 }
 
 function render() {
@@ -26,127 +53,221 @@ function render() {
     return;
   }
 
-  const totalSteps = GAME_STEPS.length;
-  const current = GAME_STEPS[state.step] ?? null;
-
-  if (!current && state.phase !== 'final') {
-    state.phase = 'final';
-  }
+  const screen = `${state.phase}:${state.step}`;
+  app.classList.toggle('animate', screen !== lastScreen);
+  lastScreen = screen;
 
   if (state.phase === 'final') {
-    app.innerHTML = `
-      <section class="card">
-        <div class="badge">Zaključek</div>
-        <h1>Čestitke!</h1>
-        <p class="subtitle">Zbral(a) si vse skrite črke: <strong>${state.foundLetters.join(', ')}</strong>.</p>
-        <p class="subtitle">Sestavi jih v pravo besedo — vrstni red ni pomemben, samo da je rezultat <strong>NEBESA</strong>.</p>
-        <form id="final-form" class="form-grid">
-          <div>
-            <label for="final-answer">Vnesi geslo</label>
-            <input id="final-answer" name="final-answer" type="text" autocomplete="off" placeholder="npr. S E B A N A" />
-          </div>
-          <button type="submit">Preveri geslo</button>
-        </form>
-        ${state.error ? `<div class="error">${state.error}</div>` : ''}
-        ${state.info ? `<div class="flash" style="margin-top: 16px;">${state.info}</div>` : ''}
-      </section>
-    `;
-
-    const finalForm = document.querySelector('#final-form');
-    finalForm?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const answer = document.querySelector('#final-answer')?.value ?? '';
-      if (checkFinalWord(answer)) {
-        state.finalSolved = true;
-        state.error = '';
-        state.info = 'Pravilno! Uspelo ti je sestaviti besedo NEBESA.';
-        renderSuccess();
-      } else {
-        state.error = 'To geslo še ni pravilno. Poskusi znova.';
-        state.info = '';
-        render();
-      }
-    });
-
+    renderFinal();
     return;
   }
 
+  if (state.phase === 'success') {
+    renderSuccess();
+    return;
+  }
+
+  const current = GAME_STEPS[state.step];
+  const stepNumber = state.step + 1;
+
   app.innerHTML = `
-    <section class="card">
-      <div class="badge">Korak ${Math.min(state.step + 1, totalSteps)} / ${totalSteps}</div>
+    <header class="hero">
+      <div class="badge">Korak ${stepNumber} / ${GAME_STEPS.length}</div>
       <h1>Lov na zaklad</h1>
-      <p class="subtitle">${current.clue}</p>
-      <p class="muted">Skrivališče: <strong>${titleCase(current.location)}</strong></p>
+      ${progressDots()}
+    </header>
+
+    <section class="card trip-card">
+      <div class="card-label">🧭 Kam greva?</div>
+      <p class="trip-text">${current.trip}</p>
+    </section>
+
+    <section class="card riddle-card">
+      <div class="card-label">🔎 Uganka</div>
+      <p class="riddle-text">${current.riddle}</p>
       ${state.phase === 'word'
         ? `
           <form id="word-form" class="form-grid">
             <div>
-              <label for="word-input">Vnesi skrivnostno besedo</label>
-              <input id="word-input" type="text" autocomplete="off" placeholder="npr. hladilnik" />
+              <label for="word-input">Kaj piše na skrivnem listku?</label>
+              <input id="word-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="skrivna beseda" />
             </div>
             <button type="submit">Preveri besedo</button>
           </form>
+          ${state.error ? `<div class="error">${state.error}</div>` : ''}
         `
         : `
-          <div class="flash">Prav! V tej uganki je skrita črka <strong>${current.letter}</strong>. Vpiši jo.</div>
-          <form id="letter-form" class="form-grid">
-            <div>
-              <label for="letter-input">Vnesi skrito črko</label>
-              <input id="letter-input" type="text" maxlength="1" autocomplete="off" placeholder="A" />
-            </div>
-            <button type="submit">Shrani črko</button>
-          </form>
+          <div class="reveal">
+            <p>Pravilno! Tvoja skrita črka je</p>
+            <span class="reveal-letter">${current.letter}</span>
+          </div>
+          <button type="button" id="next-step" class="wide">
+            ${state.step + 1 < GAME_STEPS.length ? 'Naprej na naslednjo uganko' : 'Na zadnji izziv'}
+          </button>
         `}
-      <div class="letters">
-        ${state.foundLetters.length
-          ? state.foundLetters.map((letter) => `<span class="letter-pill">${letter}</span>`).join('')
-          : '<span class="muted">Še ni najdenih črk.</span>'}
-      </div>
-      ${state.error ? `<div class="error" style="margin-top: 16px;">${state.error}</div>` : ''}
-      ${state.info ? `<div class="flash" style="margin-top: 16px;">${state.info}</div>` : ''}
+    </section>
+
+    <section class="card">
+      <div class="card-label">✉️ Zbrane črke</div>
+      ${letterSlots()}
     </section>
   `;
 
-  const wordForm = document.querySelector('#word-form');
-  if (wordForm) {
-    wordForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const input = document.querySelector('#word-input');
-      const guess = input?.value ?? '';
-      if (isCorrectWordGuess(guess, state.step)) {
-        state.phase = 'letter';
-        state.error = '';
-        state.info = '';
-        render();
-      } else {
-        state.error = 'Beseda ni pravilna. Poskusi znova.';
-        state.info = '';
-        render();
+  document.querySelector('#word-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const guess = document.querySelector('#word-input')?.value ?? '';
+    if (isCorrectWordGuess(guess, state.step)) {
+      state.phase = 'reveal';
+      state.error = '';
+      state.foundLetters.push(current.letter);
+    } else {
+      state.error = 'Beseda ni pravilna. Poskusi znova.';
+    }
+    render();
+  });
+
+  document.querySelector('#next-step')?.addEventListener('click', () => {
+    state.step += 1;
+    state.phase = state.step >= GAME_STEPS.length ? 'final' : 'word';
+    render();
+  });
+
+  document.querySelector('#word-input')?.focus();
+}
+
+function keyStates() {
+  const states = {};
+  state.guesses.forEach((guess) => {
+    scoreGuess(guess).forEach((result, i) => {
+      const char = guess[i];
+      if (!states[char] || STATE_RANK[result] > STATE_RANK[states[char]]) {
+        states[char] = result;
       }
     });
+  });
+  return states;
+}
+
+function renderFinal() {
+  const rows = [];
+  for (let r = 0; r < MAX_FINAL_ATTEMPTS; r += 1) {
+    const guess = state.guesses[r];
+    const isCurrent = r === state.guesses.length;
+    const scores = guess ? scoreGuess(guess) : [];
+    const text = guess ?? (isCurrent ? state.current : '');
+    const tiles = Array.from({ length: WORD_LENGTH }, (_, i) => {
+      const char = text[i] ?? '';
+      const cls = guess ? scores[i] : char ? 'filled' : '';
+      return `<span class="tile ${cls}" style="--i:${i}">${char}</span>`;
+    }).join('');
+    const rowClass = isCurrent && state.error
+      ? 'shake'
+      : state.justSubmitted && r === state.guesses.length - 1 ? 'just-revealed' : '';
+    rows.push(`<div class="tile-row ${rowClass}">${tiles}</div>`);
   }
 
-  const letterForm = document.querySelector('#letter-form');
-  if (letterForm) {
-    letterForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const input = document.querySelector('#letter-input');
-      const guess = normalizeLetterInput(input?.value ?? '');
-      if (isCorrectLetterGuess(guess, state.step)) {
-        state.foundLetters.push(current.letter);
-        state.error = '';
-        state.info = `Črka ${current.letter} je pravilna. Nadaljujemo na naslednjo lokacijo.`;
-        state.step += 1;
-        state.phase = state.step >= totalSteps ? 'final' : 'word';
-        render();
-      } else {
-        state.error = 'Ta črka ni pravilna. Preveri skrivnostni znak.';
-        state.info = '';
-        render();
-      }
-    });
-  }
+  const keys = keyStates();
+  const keyboard = KEYBOARD_ROWS.map((row, rowIndex) => {
+    const letterKeys = row.split('').map((char) =>
+      `<button type="button" class="key ${keys[char] ?? ''}" data-key="${char}">${char}</button>`
+    ).join('');
+    const extra = rowIndex === KEYBOARD_ROWS.length - 1
+      ? `<button type="button" class="key wide-key" data-key="ENTER">Vnesi</button>${letterKeys}<button type="button" class="key wide-key" data-key="BACKSPACE" aria-label="Briši">⌫</button>`
+      : letterKeys;
+    return `<div class="key-row">${extra}</div>`;
+  }).join('');
+
+  const outOfTries = state.guesses.length >= MAX_FINAL_ATTEMPTS;
+
+  app.innerHTML = `
+    <header class="hero">
+      <div class="badge">Zadnji izziv</div>
+      <h1>Kam greva?</h1>
+      <p class="subtitle">Zbrane črke so pomešane. Sestavi iz njih ime kraja. Imaš ${MAX_FINAL_ATTEMPTS} poskusov.</p>
+    </header>
+
+    <section class="card">
+      <div class="card-label">✉️ Tvoje črke</div>
+      ${letterSlots()}
+    </section>
+
+    <section class="card wordle-card">
+      <div class="board">${rows.join('')}</div>
+      ${state.error ? `<div class="error">${state.error}</div>` : ''}
+      ${outOfTries
+        ? '<button type="button" id="retry" class="wide">Poskusi znova</button>'
+        : `<div class="keyboard">${keyboard}</div>`}
+      <p class="legend">
+        <span><span class="tile mini correct"></span> pravo mesto</span>
+        <span><span class="tile mini present"></span> napačno mesto</span>
+        <span><span class="tile mini absent"></span> ni v besedi</span>
+      </p>
+    </section>
+  `;
+
+  app.querySelectorAll('.key').forEach((button) => {
+    button.addEventListener('click', () => handleKey(button.dataset.key));
+  });
+
+  document.querySelector('#retry')?.addEventListener('click', () => {
+    state.guesses = [];
+    state.current = '';
+    state.error = '';
+    state.justSubmitted = false;
+    render();
+  });
 }
+
+function handleKey(key) {
+  if (state.phase !== 'final' || state.guesses.length >= MAX_FINAL_ATTEMPTS) {
+    return;
+  }
+
+  state.error = '';
+  state.justSubmitted = false;
+
+  if (key === 'ENTER') {
+    if (state.current.length < WORD_LENGTH) {
+      state.error = `Beseda mora imeti ${WORD_LENGTH} črk.`;
+    } else {
+      const guess = state.current;
+      state.guesses.push(guess);
+      state.current = '';
+      state.justSubmitted = true;
+      if (guess === FINAL_WORD) {
+        render();
+        setTimeout(() => {
+          state.phase = 'success';
+          render();
+        }, 1600);
+        return;
+      }
+      if (state.guesses.length >= MAX_FINAL_ATTEMPTS) {
+        state.error = 'Zmanjkalo je poskusov. Premešaj črke in poskusi znova.';
+      }
+    }
+  } else if (key === 'BACKSPACE') {
+    state.current = state.current.slice(0, -1);
+  } else if (state.current.length < WORD_LENGTH) {
+    state.current += normalizeWord(key).slice(0, 1);
+  }
+
+  render();
+}
+
+document.addEventListener('keydown', (event) => {
+  if (state.phase !== 'final' || event.ctrlKey || event.metaKey || event.altKey) {
+    return;
+  }
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    handleKey('ENTER');
+  } else if (event.key === 'Backspace') {
+    handleKey('BACKSPACE');
+  } else if (/^[a-zA-Z]$/.test(event.key)) {
+    handleKey(event.key.toUpperCase());
+  }
+});
 
 function renderSuccess() {
   const images = [
@@ -156,23 +277,17 @@ function renderSuccess() {
   ];
 
   app.innerHTML = `
+    <header class="hero success">
+      <div class="badge">Cilj dosežen 🎉</div>
+      <h1 class="final-word">${FINAL_WORD.split('').map((char, i) => `<span style="--i:${i}">${char}</span>`).join('')}</h1>
+      <p class="subtitle">Bravo! Greva v <strong>Nebesa Chalets</strong> nad Kobaridom – visoko nad oblaki, s pogledom na dolino Soče in Krn.</p>
+    </header>
+
     <section class="card">
-      <div class="badge">Nebo je bilo doseženo</div>
-      <h1>NEBESA</h1>
-      <p class="subtitle">Pravilno si sestavil(a) skrito besedo. Tukaj so nekaj slik iz Nebesa Challets, da si ob njih zatrdimo doživetje.</p>
-      <div style="margin: 18px 0; text-align: center;">
-        <img src="../assets/qr-code.svg" alt="QR koda za GitHub Pages" width="180" height="180" />
-      </div>
-      <p class="muted">Skeni QR kodo, da odpreš to stran tudi na telefonu:</p>
       <div class="gallery">
-        ${images.map((src) => `<img src="${src}" alt="Nebesa Challets" />`).join('')}
+        ${images.map((src) => `<img src="${src}" alt="Gorska pokrajina" loading="lazy" />`).join('')}
       </div>
-      <div class="letters" style="margin-top: 20px;">
-        ${state.foundLetters.map((letter) => `<span class="letter-pill">${letter}</span>`).join('')}
-      </div>
-      <div style="margin-top: 20px;">
-        <button class="secondary" type="button" id="play-again">Začni znova</button>
-      </div>
+      <button class="secondary wide" type="button" id="play-again">Začni znova</button>
     </section>
   `;
 
@@ -181,8 +296,8 @@ function renderSuccess() {
     state.phase = 'word';
     state.foundLetters = [];
     state.error = '';
-    state.info = '';
-    state.finalSolved = false;
+    state.guesses = [];
+    state.current = '';
     render();
   });
 }
