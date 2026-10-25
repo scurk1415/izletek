@@ -3,14 +3,11 @@ import {
   GAME_STEPS,
   MAX_FINAL_ATTEMPTS,
   isCorrectWordGuess,
-  normalizeWord,
   scoreGuess
 } from '../game.js';
 
 const app = document.querySelector('#app');
 const WORD_LENGTH = FINAL_WORD.length;
-const KEYBOARD_ROWS = ['QWERTZUIOP', 'ASDFGHJKL', 'YXCVBNM'];
-const STATE_RANK = { absent: 1, present: 2, correct: 3 };
 
 const state = {
   step: 0,
@@ -18,7 +15,7 @@ const state = {
   foundLetters: [],
   error: '',
   guesses: [],
-  current: '',
+  picked: [],
   justSubmitted: false
 };
 
@@ -135,17 +132,8 @@ function render() {
   document.querySelector('#word-input')?.focus();
 }
 
-function keyStates() {
-  const states = {};
-  state.guesses.forEach((guess) => {
-    scoreGuess(guess).forEach((result, i) => {
-      const char = guess[i];
-      if (!states[char] || STATE_RANK[result] > STATE_RANK[states[char]]) {
-        states[char] = result;
-      }
-    });
-  });
-  return states;
+function currentGuess() {
+  return state.picked.map((index) => state.foundLetters[index]).join('');
 }
 
 function renderFinal() {
@@ -154,11 +142,14 @@ function renderFinal() {
     const guess = state.guesses[r];
     const isCurrent = r === state.guesses.length;
     const scores = guess ? scoreGuess(guess) : [];
-    const text = guess ?? (isCurrent ? state.current : '');
     const tiles = Array.from({ length: WORD_LENGTH }, (_, i) => {
-      const char = text[i] ?? '';
-      const cls = guess ? scores[i] : char ? 'filled' : '';
-      return `<span class="tile ${cls}" style="--i:${i}">${char}</span>`;
+      if (guess) {
+        return `<span class="tile ${scores[i]}" style="--i:${i}">${guess[i]}</span>`;
+      }
+      if (isCurrent && state.picked[i] !== undefined) {
+        return `<button type="button" class="tile filled" data-action="unpick" data-pos="${i}" aria-label="Odstrani črko">${state.foundLetters[state.picked[i]]}</button>`;
+      }
+      return '<span class="tile"></span>';
     }).join('');
     const rowClass = isCurrent && state.error
       ? 'shake'
@@ -166,106 +157,119 @@ function renderFinal() {
     rows.push(`<div class="tile-row ${rowClass}">${tiles}</div>`);
   }
 
-  const keys = keyStates();
-  const keyboard = KEYBOARD_ROWS.map((row, rowIndex) => {
-    const letterKeys = row.split('').map((char) =>
-      `<button type="button" class="key ${keys[char] ?? ''}" data-key="${char}">${char}</button>`
-    ).join('');
-    const extra = rowIndex === KEYBOARD_ROWS.length - 1
-      ? `<button type="button" class="key wide-key" data-key="ENTER">Vnesi</button>${letterKeys}<button type="button" class="key wide-key" data-key="BACKSPACE" aria-label="Briši">⌫</button>`
-      : letterKeys;
-    return `<div class="key-row">${extra}</div>`;
-  }).join('');
+  const solved = state.guesses.includes(FINAL_WORD);
+  const outOfTries = !solved && state.guesses.length >= MAX_FINAL_ATTEMPTS;
+  const full = state.picked.length === WORD_LENGTH;
 
-  const outOfTries = state.guesses.length >= MAX_FINAL_ATTEMPTS;
+  const tray = state.foundLetters.map((letter, index) => {
+    const used = state.picked.includes(index);
+    return `<button type="button" class="tray-letter" data-action="pick" data-index="${index}" ${used ? 'disabled' : ''}>${letter}</button>`;
+  }).join('');
 
   app.innerHTML = `
     <header class="hero">
       <div class="badge">Zadnji izziv</div>
       <h1>Kam greva?</h1>
-      <p class="subtitle">Zbrane črke so pomešane. Sestavi iz njih ime kraja. Imaš ${MAX_FINAL_ATTEMPTS} poskusov.</p>
+      <p class="subtitle">Zbrane črke so pomešane. Tapni jih v pravem vrstnem redu in sestavi ime kraja. Imaš ${MAX_FINAL_ATTEMPTS} poskusov.</p>
     </header>
-
-    <section class="card">
-      <div class="card-label">✉️ Tvoje črke</div>
-      ${letterSlots()}
-    </section>
 
     <section class="card wordle-card">
       <div class="board">${rows.join('')}</div>
       ${state.error ? `<div class="error">${state.error}</div>` : ''}
-      ${outOfTries
-        ? '<button type="button" id="retry" class="wide">Poskusi znova</button>'
-        : `<div class="keyboard">${keyboard}</div>`}
+      ${solved
+        ? ''
+        : outOfTries
+          ? '<button type="button" class="wide" data-action="retry">Poskusi znova</button>'
+          : `
+            <div class="tray">${tray}</div>
+            <div class="tray-actions">
+              <button type="button" class="secondary" data-action="clear" ${state.picked.length ? '' : 'disabled'}>Pobriši</button>
+              <button type="button" data-action="submit" ${full ? '' : 'disabled'}>Preveri</button>
+            </div>
+          `}
       <p class="legend">
         <span><span class="tile mini correct"></span> pravo mesto</span>
         <span><span class="tile mini present"></span> napačno mesto</span>
-        <span><span class="tile mini absent"></span> ni v besedi</span>
       </p>
     </section>
   `;
-
-  app.querySelectorAll('.key').forEach((button) => {
-    button.addEventListener('click', () => handleKey(button.dataset.key));
-  });
-
-  document.querySelector('#retry')?.addEventListener('click', () => {
-    state.guesses = [];
-    state.current = '';
-    state.error = '';
-    state.justSubmitted = false;
-    render();
-  });
 }
 
-function handleKey(key) {
-  if (state.phase !== 'final' || state.guesses.length >= MAX_FINAL_ATTEMPTS) {
+function pick(index) {
+  if (state.picked.length < WORD_LENGTH && !state.picked.includes(index) && state.foundLetters[index]) {
+    state.picked.push(index);
+  }
+}
+
+function submitGuess() {
+  if (state.picked.length < WORD_LENGTH) {
+    state.error = 'Uporabi vse zbrane črke.';
+    return;
+  }
+  const guess = currentGuess();
+  state.guesses.push(guess);
+  state.picked = [];
+  state.justSubmitted = true;
+  if (guess === FINAL_WORD) {
+    setTimeout(() => {
+      state.phase = 'success';
+      render();
+    }, 1600);
+  } else if (state.guesses.length >= MAX_FINAL_ATTEMPTS) {
+    state.error = 'Zmanjkalo je poskusov. Poskusi znova.';
+  }
+}
+
+function handleFinalAction(action, data = {}) {
+  if (state.phase !== 'final' || state.guesses.includes(FINAL_WORD)) {
     return;
   }
 
   state.error = '';
   state.justSubmitted = false;
 
-  if (key === 'ENTER') {
-    if (state.current.length < WORD_LENGTH) {
-      state.error = `Beseda mora imeti ${WORD_LENGTH} črk.`;
-    } else {
-      const guess = state.current;
-      state.guesses.push(guess);
-      state.current = '';
-      state.justSubmitted = true;
-      if (guess === FINAL_WORD) {
-        render();
-        setTimeout(() => {
-          state.phase = 'success';
-          render();
-        }, 1600);
-        return;
-      }
-      if (state.guesses.length >= MAX_FINAL_ATTEMPTS) {
-        state.error = 'Zmanjkalo je poskusov. Premešaj črke in poskusi znova.';
-      }
-    }
-  } else if (key === 'BACKSPACE') {
-    state.current = state.current.slice(0, -1);
-  } else if (state.current.length < WORD_LENGTH) {
-    state.current += normalizeWord(key).slice(0, 1);
+  if (action === 'retry') {
+    state.guesses = [];
+    state.picked = [];
+  } else if (state.guesses.length >= MAX_FINAL_ATTEMPTS) {
+    return;
+  } else if (action === 'pick') {
+    pick(Number(data.index));
+  } else if (action === 'unpick') {
+    state.picked.splice(Number(data.pos), 1);
+  } else if (action === 'clear') {
+    state.picked = [];
+  } else if (action === 'submit') {
+    submitGuess();
   }
 
   render();
 }
 
+// One delegated listener survives every re-render of #app.
+app?.addEventListener('click', (event) => {
+  const target = event.target.closest('[data-action]');
+  if (target && !target.disabled) {
+    handleFinalAction(target.dataset.action, target.dataset);
+  }
+});
+
+// Physical keyboard: only the collected letters can be typed.
 document.addEventListener('keydown', (event) => {
   if (state.phase !== 'final' || event.ctrlKey || event.metaKey || event.altKey) {
     return;
   }
   if (event.key === 'Enter') {
     event.preventDefault();
-    handleKey('ENTER');
+    handleFinalAction('submit');
   } else if (event.key === 'Backspace') {
-    handleKey('BACKSPACE');
+    handleFinalAction('unpick', { pos: state.picked.length - 1 });
   } else if (/^[a-zA-Z]$/.test(event.key)) {
-    handleKey(event.key.toUpperCase());
+    const letter = event.key.toUpperCase();
+    const index = state.foundLetters.findIndex((char, i) => char === letter && !state.picked.includes(i));
+    if (index !== -1) {
+      handleFinalAction('pick', { index });
+    }
   }
 });
 
@@ -297,7 +301,8 @@ function renderSuccess() {
     state.foundLetters = [];
     state.error = '';
     state.guesses = [];
-    state.current = '';
+    state.picked = [];
+    state.justSubmitted = false;
     render();
   });
 }

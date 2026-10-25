@@ -9,7 +9,12 @@ export const GAME_STEPS = [
     word: 'mleko',
     letter: 'S',
     trip: 'Ne greva v tujino. Ostaneva doma, v Sloveniji.',
-    riddle: 'Notri je vedno zima, tudi poleti. Luč se prižge, ko odpreš vrata, mleko in sir pa čakata, da ju vzameš.'
+    riddle: [
+      'Ves dan tiho brnim, a v meni je mraz,',
+      'lučka zasveti, ko pokažeš obraz.',
+      'Ko te ponoči lakota k meni privabi,',
+      'vzemi, kar želiš, le vrat zapreti ne pozabi!'
+    ].join('\n')
   },
   {
     id: 'pillow',
@@ -17,41 +22,65 @@ export const GAME_STEPS = [
     aliases: ['sanj'],
     letter: 'A',
     trip: 'Greva proti zahodu, tja, kjer so gore višje od valov.',
-    riddle: 'Vsako noč nosim tvojo glavo. Mehka sem, a tvojih sanj ne izdam nikomur.'
+    riddle: [
+      'Ko luna posveti in dan se poslovi,',
+      'na meni tvoja glava sladko zaspi.',
+      'Vse tvoje sanje poznam, a sem tiha kot miš,',
+      'in vem, na kateri strani najraje ležiš.'
+    ].join('\n')
   },
   {
     id: 'shoe',
     word: 'par',
     letter: 'E',
     trip: 'Tam teče reka tako zelenomodra, da ji pravijo smaragdna lepotica.',
-    riddle: 'Midva sva par in vedno hodiva skupaj. Čez dan te nosiva, ponoči spiva pri vratih.'
+    riddle: [
+      'Dvojčka sva, a nikoli ne govoriva,',
+      'čeprav vsak svoj jeziček imava.',
+      'Čez dan te zvesto po svetu nosiva,',
+      'ponoči pri vratih utrujena spiva.'
+    ].join('\n')
   },
   {
     id: 'mirror',
     word: 'odsev',
     letter: 'N',
     trip: 'Nad dolino bdi gora, visoka 2244 metrov.',
-    riddle: 'Pokažem ti tvoj obraz, a nisem slika. Zjutraj me pogledaš, preden greš od doma.'
+    riddle: [
+      'Vsako jutro te vidim, ko si še zaspana,',
+      'kuštrava, smešna in malo zmečkana.',
+      'Kar narediš ti, ponovim tudi jaz,',
+      'le levo in desno zamenjam vsak čas.'
+    ].join('\n')
   },
   {
     id: 'car',
     word: 'kolesa',
     letter: 'B',
     trip: 'Mesto ob tej reki slovi po muzeju prve svetovne vojne, slapu Kozjak in kobariških štrukljih.',
-    riddle: 'Imam štiri kolesa, a nisem voziček. Z mano bosta kmalu na poti, ptiček moj.'
+    riddle: [
+      'Štiri okrogle noge imam, a nikoli ne hodim,',
+      'ko me napojiš, daleč po svetu te vodim.',
+      'Pred hišo potrpežljivo čakam ves dan,',
+      'da ključ obrneš in te odpeljem drugam.'
+    ].join('\n')
   },
   {
-    id: 'envelope',
-    word: 'oblak',
-    aliases: ['oblaki'],
+    id: 'coffee',
+    word: 'kava',
     letter: 'E',
     trip: 'Ne bova spala v mestu, ampak visoko nad njim, nad oblaki, s pogledom na vso dolino in gore. Kraj je tako lep, da so ga poimenovali po raju.',
-    riddle: 'Sem iz papirja, zaprta in zalepljena. V meni čaka zadnje presenečenje.'
+    riddle: [
+      'Vsako jutro zabrnim, zasikam, zadišim,',
+      'z vročim napojem zaspanost ti zbrišem.',
+      'Brez mene je jutro kot dan brez sonca —',
+      'podstavi skodelico in pij do konca!'
+    ].join('\n')
   }
 ];
 
 function stripDiacritics(value) {
-  return String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 export function normalizeLetterInput(value) {
