@@ -54,15 +54,15 @@ export const GAME_STEPS = [
     ].join('\n')
   },
   {
-    id: 'car',
-    word: 'kolesa',
+    id: 'washer',
+    word: 'cunje',
     letter: 'B',
     trip: 'Mesto ob tej reki slovi po muzeju prve svetovne vojne, slapu Kozjak in kobariških štrukljih.',
     riddle: [
-      'Štiri okrogle noge imam, a nikoli ne hodim,',
-      'ko me napojiš, daleč po svetu te vodim.',
-      'Pred hišo potrpežljivo čakam ves dan,',
-      'da ključ obrneš in te odpeljem drugam.'
+      'Pogoltnem vse, kar je umazano in smrdi,',
+      'v trebuhu se mi vse vrti, da kar zašumi.',
+      'Skozi okroglo okence gledaš ta ples,',
+      'na koncu vse diši po cvetju — pa res!'
     ].join('\n')
   },
   {

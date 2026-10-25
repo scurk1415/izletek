@@ -542,7 +542,7 @@ button.tile {
   position: relative;
   border-radius: 26px;
   overflow: hidden;
-  min-height: 440px;
+  min-height: 300px;
   display: grid;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
@@ -561,7 +561,7 @@ button.tile {
 .celebration-overlay {
   position: relative;
   align-self: end;
-  padding: 90px 18px 30px;
+  padding: 60px 18px 24px;
   text-align: center;
   color: white;
   background: linear-gradient(180deg, transparent 0%, rgba(12, 10, 32, 0.8) 65%);

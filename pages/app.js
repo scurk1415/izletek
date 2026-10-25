@@ -284,7 +284,19 @@ const PHOTOS = [
   { src: '1212/nebesa_jost_gantar-49.jpg', alt: 'Hiške ob mraku pod zasneženimi vršaci' },
   { src: '1242/nebesa_jost_gantar-24.jpg', alt: 'Počitek na travniku nad dolino Soče' },
   { src: '1281/nebesa_jost_gantar-13.jpg', alt: 'Večerja za dva z razgledom na gore' },
-  { src: '1216/nebesa_jost_gantar-22.jpg', alt: 'Sprehod po gorskem travniku ob sončnem zahodu' }
+  { src: '1216/nebesa_jost_gantar-22.jpg', alt: 'Sprehod po gorskem travniku ob sončnem zahodu' },
+  { src: '1238/nebesa_jost_gantar-56.jpg', alt: 'Hiške nad morjem oblakov ob modri uri' },
+  { src: '1263/1_visoko-nad-vsakdanom.jpg', alt: 'Osvetljene hiške pod gorami ponoči' },
+  { src: '1152/hisice.jpg', alt: 'Hiške v zlatem soncu' },
+  { src: '1158/kolovrat-in-krn.jpg', alt: 'Krn v rdeči zarji' },
+  { src: '1275/galerija_nebesa-za-dva.jpg', alt: 'Pogled iz hiške na teraso in gore' },
+  { src: '1206/nebesa_jost_gantar-53.jpg', alt: 'Notranjost hiške z galerijo' },
+  { src: '1307/imageedit_22_8514782012.jpg', alt: 'Postelja pod strešnim oknom' },
+  { src: '1285/nebesa_jost_gantar-55.jpg', alt: 'Savna z razgledom' },
+  { src: '1259/1_kjer-je-manj-vec.jpg', alt: 'Večer za steklom z razgledom na dolino' },
+  { src: '1145/000011.jpg', alt: 'Terasa hiške ob mraku' },
+  { src: '1249/nebesa_jost_gantar-25.jpg', alt: 'Dolina Soče z oblaki' },
+  { src: '1288/3_kraj-casovnega-in-vizualnega.jpg', alt: 'Sončni zahod nad dolino' }
 ];
 
 function photoUrl(src) {
