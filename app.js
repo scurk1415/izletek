@@ -161,6 +161,10 @@ function renderSuccess() {
       <div class="badge">Nebo je bilo doseženo</div>
       <h1>NEBESA</h1>
       <p class="subtitle">Pravilno si sestavil(a) skrito besedo. Tukaj so nekaj slik iz Nebesa Challets, da si ob njih zatrdimo doživetje.</p>
+      <div style="margin: 18px 0; text-align: center;">
+        <img src="./assets/qr-code.svg" alt="QR koda za GitHub Pages" width="180" height="180" />
+      </div>
+      <p class="muted">Skeni QR kodo, da odpreš to stran tudi na telefonu:</p>
       <div class="gallery">
         ${images.map((src) => `<img src="${src}" alt="Nebesa Challets" />`).join('')}
       </div>
