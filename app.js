@@ -18,6 +18,10 @@ const state = {
   finalSolved: false
 };
 
+function titleCase(value) {
+  return String(value || '').replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function render() {
   if (!app) {
     return;
@@ -36,7 +40,7 @@ function render() {
         <div class="badge">Zaključek</div>
         <h1>Čestitke!</h1>
         <p class="subtitle">Zbral(a) si vse skrite črke: <strong>${state.foundLetters.join(', ')}</strong>.</p>
-        <p class="subtitle">Sedaj sestavi besedo iz vseh črk, pri čemer je vrstni red poljuben.</p>
+        <p class="subtitle">Sestavi jih v pravo besedo — vrstni red ni pomemben, samo da je rezultat <strong>NEBESA</strong>.</p>
         <form id="final-form" class="form-grid">
           <div>
             <label for="final-answer">Vnesi geslo</label>
@@ -73,19 +77,19 @@ function render() {
       <div class="badge">Korak ${Math.min(state.step + 1, totalSteps)} / ${totalSteps}</div>
       <h1>Lov na zaklad</h1>
       <p class="subtitle">${current.clue}</p>
-      <p class="muted">Lokacija: <strong>${current.location}</strong></p>
+      <p class="muted">Skrivališče: <strong>${titleCase(current.location)}</strong></p>
       ${state.phase === 'word'
         ? `
           <form id="word-form" class="form-grid">
             <div>
-              <label for="word-input">Vnesi skrito besedo</label>
+              <label for="word-input">Vnesi skrivnostno besedo</label>
               <input id="word-input" type="text" autocomplete="off" placeholder="npr. hladilnik" />
             </div>
             <button type="submit">Preveri besedo</button>
           </form>
         `
         : `
-          <div class="flash">Prav! V besedi je skrita črka <strong>${current.letter}</strong>. Vnesi jo sedaj.</div>
+          <div class="flash">Prav! V tej uganki je skrita črka <strong>${current.letter}</strong>. Vpiši jo.</div>
           <form id="letter-form" class="form-grid">
             <div>
               <label for="letter-input">Vnesi skrito črko</label>

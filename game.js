@@ -3,45 +3,45 @@ export const FINAL_WORD = 'NEBESA';
 export const GAME_STEPS = [
   {
     id: 'fridge',
-    location: 'Hladilnik',
+    location: 'hladilnik',
     word: 'hladilnik',
-    letter: 'A',
-    clue: 'V hladilniku leži papir. Na njem je zapisano besedo, ki odpre naslednji korak.'
-  },
-  {
-    id: 'backpack',
-    location: 'Nahrbtnik',
-    word: 'nahrbtnik',
     letter: 'N',
-    clue: 'Papir je skrit v nahrbtniku, ki ga je mogoče najti ob stolu.'
+    clue: 'Ne gremo v tujino. Ostaneva doma, v Sloveniji. Notri je vedno zima, tudi poleti, luč se prižge, ko vrata odpreš, mleko in sir tam čakata, da ju vzameš.'
   },
   {
-    id: 'rack',
-    location: 'Vešalnik',
-    word: 'vesalnik',
+    id: 'pillow',
+    location: 'pod blazino',
+    word: 'pod blazino',
     letter: 'E',
-    clue: 'Na vešalniku visi list z napisano vlogo besedo.'
+    clue: 'Greva proti zahodu, ampak tam, kjer so gore višje od valov. Vsako noč nosim tvojo glavo, mehka sem, a tvojih sanj ne povem nikomur.'
   },
   {
-    id: 'bomb',
-    location: 'Bomba',
-    word: 'bomba',
+    id: 'shoe',
+    location: 'v čevlju',
+    word: 'v cevlju',
     letter: 'B',
-    clue: 'Na steni za kamnom je malo preoblečen papir z besedo bomba.'
+    clue: 'Tam teče reka tako zelena in modra, da ji pravijo smaragdna lepotica. Par naju je, vedno skupaj hodiva, čez dan te nosiva, ponoči pri vratih spiva.'
   },
   {
-    id: 'trash',
-    location: 'Smetnjak',
-    word: 'smetnjak',
+    id: 'mirror',
+    location: 'ogledalo v kopalnici',
+    word: 'ogledalo',
+    letter: 'E',
+    clue: 'Nad dolino bdi gora, visoka 2244 metrov. Pokažem ti tvoj obraz, a nisem slika, zjutraj me pogledaš, preden greš od doma.'
+  },
+  {
+    id: 'car',
+    location: 'v avtu',
+    word: 'avto',
     letter: 'S',
-    clue: 'V spodnjem predalu je skrita skrivnostna beseda smetnjak.'
+    clue: 'Mesto ob tej reki je znano po muzeju prve svetovne vojne, slapu Kozjak in kobariških štrukljah. Imam štiri kolesa, a nisem voziček, z mano bova kmalu na poti, moj ptiček.'
   },
   {
-    id: 'palette',
-    location: 'Paleta',
-    word: 'paleta',
+    id: 'finale',
+    location: 'pripravljena kuverta',
+    word: 'kuverta',
     letter: 'A',
-    clue: 'Na paleti je še zadnji papir s črko, ki jo potrebuješ.'
+    clue: 'Ne bova spala v mestu, ampak visoko nad njim, nad oblaki, s pogledom na celo dolino in gore. Kraj je tako lep, da mu niso mogli dati drugega imena kot: ' + FINAL_WORD + '.'
   }
 ];
 
